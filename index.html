@@ -137,62 +137,31 @@
 </div>
 
 <script>
-    // ===== إعدادات قاعدة البيانات السحابية (تم إنشاؤها لك) =====
-    const BIN_ID = '67eeae098561e97a50e3351b'; // معرف الصندوق الخاص بك
-    const API_KEY = '$2a$10$wC.a9xG.WpNk93ajKpUJpe1nNuNzDlqV.lUM1g7QwQ6n34qOtq7JC'; // مفتاحك الخاص
-    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+    // ===== إعدادات قاعدة البيانات السحابية الجديدة (الأسرع) =====
+    const SUPABASE_URL = 'https://yjeibdppurxqshlaxqja.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqZWliZHBwdXJ4cXNobGF4cWphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzNDU0NjQsImV4cCI6MjA1NzkyMTQ2NH0.xMx30-bXwA_6bwHp2yNvR09l8FJ11vqA2LcZR-8UqLs';
 
     let products = [];
     let cart = JSON.parse(localStorage.getItem('zekoo_cart')) || [];
 
-    // ===== تحميل المنتجات من السحابة (عند فتح الصفحة) =====
+    // ===== تحميل المنتجات من السحابة =====
     async function loadProducts() {
         try {
-            const response = await fetch(API_URL, {
-                method: 'GET',
-                headers: { 'X-Master-Key': API_KEY }
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/products?select=*`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
             });
             const data = await response.json();
-            products = data.record || [];
+            products = data || [];
             renderProducts();
         } catch (error) {
             console.error('فشل تحميل المنتجات:', error);
         }
     }
 
-    // ===== حفظ المنتجات في السحابة =====
-    async function saveProductsToDB() {
-        try {
-            await fetch(API_URL, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': API_KEY
-                },
-                body: JSON.stringify(products)
-            });
-        } catch (error) {
-            console.error('فشل حفظ المنتجات:', error);
-        }
-    }
-
-    // ===== تشغيل عند فتح الصفحة =====
-    loadProducts();
-    updateCartUI();
-
-    // ===== دوال الرمز السري =====
-    function openSecretModal() { document.getElementById('secret-modal').style.display = 'flex'; document.getElementById('secret-pass').value = ''; }
-    function closeSecretModal() { document.getElementById('secret-modal').style.display = 'none'; }
-    function checkSecret() {
-        const pass = document.getElementById('secret-pass').value;
-        if (pass === 'athman2003$$') {
-            closeSecretModal();
-            document.getElementById('admin-panel').style.display = 'block';
-            document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'flex');
-        } else { alert('❌ رمز سري خاطئ!'); }
-    }
-
-    // ===== إضافة منتج جديد (يُحفظ في السحابة) =====
+    // ===== إضافة منتج جديد (ينحفظ فوراً) =====
     async function addProduct() {
         const title = document.getElementById('p-title').value;
         const price = document.getElementById('p-price').value;
@@ -203,23 +172,35 @@
             return; 
         }
 
-        const newProduct = {
-            id: Date.now(),
-            title: title,
-            price: price,
-            image: imageUrl
-        };
-        
-        products.push(newProduct);
-        await saveProductsToDB(); // حفظ في السحابة (يبقى للأبد)
-        renderProducts();
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/products`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify([{ title, price: parseInt(price), image: imageUrl }])
+            });
 
-        document.getElementById('admin-panel').style.display = 'none';
-        document.getElementById('p-title').value = ''; 
-        document.getElementById('p-price').value = ''; 
-        document.getElementById('p-image-url').value = '';
-        document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
-        alert('✅ تم نشر المنتج بنجاح! الآن يراه الجميع وسيبقى للأبد!');
+            const newProductData = await response.json();
+            
+            if (newProductData && newProductData.length > 0) {
+                products.push(newProductData[0]);
+                renderProducts();
+
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('p-title').value = ''; 
+                document.getElementById('p-price').value = ''; 
+                document.getElementById('p-image-url').value = '';
+                document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
+                alert('✅ تم نشر المنتج بنجاح! سيبقى للأبد ولا يختفي بالرفراش!');
+            }
+        } catch (error) {
+            console.error('فشل إضافة المنتج:', error);
+            alert('❌ حدث خطأ أثناء الإضافة.');
+        }
     }
 
     // ===== عرض المنتجات =====
@@ -241,13 +222,24 @@
         });
     }
 
-    // ===== حذف منتج من المتجر (يُحذف من السحابة) =====
+    // ===== حذف منتج =====
     async function deleteProduct(id) {
         if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-            products = products.filter(product => product.id !== id);
-            await saveProductsToDB();
-            renderProducts();
-            alert('🗑️ تم حذف المنتج بنجاح!');
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/products?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                products = products.filter(product => product.id !== id);
+                renderProducts();
+                alert('🗑️ تم حذف المنتج بنجاح!');
+            } catch (error) {
+                console.error('فشل الحذف:', error);
+                alert('❌ فشل حذف المنتج.');
+            }
         }
     }
 
@@ -330,6 +322,10 @@
         msg += `*💰 المجموع الكلي: ${total} د.ع*\n`;
         window.open(`https://wa.me/9647732155557?text=${encodeURIComponent(msg)}`, '_blank');
     }
+
+    // ===== تشغيل التحميل عند فتح الصفحة =====
+    loadProducts();
+    updateCartUI();
 </script>
 </body>
 </html>
