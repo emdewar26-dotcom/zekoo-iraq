@@ -137,12 +137,46 @@
 </div>
 
 <script>
-    // ===== تحميل المنتجات من الذاكرة المحلية (LocalStorage) =====
-    let products = JSON.parse(localStorage.getItem('zekoo_products')) || [];
+    // ===== الإعدادات =====
+    const BIN_ID = '67e6e2be8561e97a50e2f380'; // معرف المخزن
+    const API_KEY = '$2a$10$p.b5.Kc2lUJg8kSCP5vUEOVFbO3OIC2GXdthVVgNtZx3VvV3bcYym'; // مفتاح الوصول
+    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+    let products = [];
     let cart = JSON.parse(localStorage.getItem('zekoo_cart')) || [];
 
-    // عرض المنتجات عند تحميل الصفحة
-    renderProducts();
+    // ===== دوال الاتصال بقاعدة البيانات =====
+    async function loadProducts() {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'GET',
+                headers: { 'X-Master-Key': API_KEY }
+            });
+            const data = await response.json();
+            products = data.record || [];
+            renderProducts();
+        } catch (error) {
+            console.error('فشل تحميل المنتجات:', error);
+        }
+    }
+
+    async function saveProductsToDB() {
+        try {
+            await fetch(API_URL, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': API_KEY
+                },
+                body: JSON.stringify(products)
+            });
+        } catch (error) {
+            console.error('فشل حفظ المنتجات:', error);
+        }
+    }
+
+    // ===== تحميل الصفحة =====
+    loadProducts();
     updateCartUI();
 
     // ===== دوال الرمز السري =====
@@ -157,12 +191,7 @@
         } else { alert('❌ رمز سري خاطئ!'); }
     }
 
-    // ===== دوال حفظ المنتجات =====
-    function saveProducts() {
-        localStorage.setItem('zekoo_products', JSON.stringify(products));
-    }
-
-    // ===== إضافة منتج جديد =====
+    // ===== إضافة منتج جديد (يذهب للعالم كله) =====
     async function addProduct() {
         const title = document.getElementById('p-title').value;
         const price = document.getElementById('p-price').value;
@@ -181,7 +210,7 @@
         };
         
         products.push(newProduct);
-        saveProducts(); // حفظ المنتج في الذاكرة
+        await saveProductsToDB(); // يحفظ في المخزن للأبد
         renderProducts();
 
         document.getElementById('admin-panel').style.display = 'none';
@@ -211,17 +240,17 @@
         });
     }
 
-    // ===== حذف منتج من المتجر =====
-    function deleteProduct(id) {
+    // ===== حذف منتج من المتجر (للجميع) =====
+    async function deleteProduct(id) {
         if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
             products = products.filter(product => product.id !== id);
-            saveProducts(); // تحديث الذاكرة بعد الحذف
+            await saveProductsToDB(); // يحذف من المخزن للجميع
             renderProducts();
             alert('🗑️ تم حذف المنتج بنجاح!');
         }
     }
 
-    // ===== دوال السلة المتطورة =====
+    // ===== دوال السلة =====
     function toggleCart() { 
         const cartBox = document.getElementById('cart-box'); 
         cartBox.style.display = cartBox.style.display === 'block' ? 'none' : 'block'; 
