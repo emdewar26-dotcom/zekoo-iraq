@@ -60,7 +60,6 @@
 
 <header class="header">
     <div class="logo-box">
-        <!-- اترك الصورة هكذا، سأخبرك لاحقاً كيف تضيف اللوقو -->
         <img src="logo.jpg" class="logo" alt="logo" onerror="this.style.display='none'">
         <h2>ZEKOO IRAQ</h2>
     </div>
@@ -127,6 +126,7 @@
         } else { alert('❌ رمز سري خاطئ!'); }
     }
 
+    // === دالة إضافة المنتج الجديدة (مع الضغط التلقائي للصورة) ===
     async function addProduct() {
         const title = document.getElementById('p-title').value;
         const price = document.getElementById('p-price').value;
@@ -135,53 +135,44 @@
         if (!title || !price || !fileInput.files[0]) { alert('الرجاء ملء جميع الحقول واختيار صورة!'); return; }
 
         const btn = document.querySelector('.add-btn');
-        btn.innerText = 'جاري رفع الصورة...';
+        btn.innerText = 'جاري الضغط والرفع...';
         btn.disabled = true;
 
         try {
             const file = fileInput.files[0];
-            const reader = new FileReader();
             
-            reader.readAsDataURL(file);
-            
-            reader.onload = async function () {
-                const base64Image = reader.result.split(',')[1];
+            // 1. ضغط الصورة وتصغير أبعادها
+            const base64Image = await compressImage(file, 600, 600, 0.7);
 
-                const formData = new FormData();
-                formData.append('image', base64Image);
+            // 2. إرسال الصورة المضغوطة إلى ImgBB
+            const formData = new FormData();
+            formData.append('image', base64Image);
 
-                const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=7b5e5fe1407540ba190f4be77f01a8cb', {
-                    method: 'POST',
-                    body: formData
-                });
+            const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=7b5e5fe1407540ba190f4be77f01a8cb', {
+                method: 'POST',
+                body: formData
+            });
 
-                const imgbbData = await imgbbResponse.json();
+            const imgbbData = await imgbbResponse.json();
 
-                if (imgbbData.success) {
-                    const imageUrl = imgbbData.data.url;
+            if (imgbbData.success) {
+                const imageUrl = imgbbData.data.url;
+                const newProduct = { id: Date.now(), title: title, price: price, image: imageUrl };
+                products.push(newProduct);
+                renderProducts();
 
-                    const newProduct = {
-                        id: Date.now(),
-                        title: title,
-                        price: price,
-                        image: imageUrl
-                    };
-                    products.push(newProduct);
-                    renderProducts();
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('p-title').value = ''; 
+                document.getElementById('p-price').value = ''; 
+                document.getElementById('p-img-file').value = '';
+                document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
+                alert('✅ تم نشر المنتج بنجاح!');
+            } else {
+                alert('❌ فشل رفع الصورة لـ ImgBB. حاول مرة أخرى.');
+            }
 
-                    document.getElementById('admin-panel').style.display = 'none';
-                    document.getElementById('p-title').value = ''; 
-                    document.getElementById('p-price').value = ''; 
-                    document.getElementById('p-img-file').value = '';
-                    document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
-                    alert('✅ تم نشر المنتج بنجاح!');
-                } else {
-                    alert('❌ فشل رفع الصورة لـ ImgBB. حاول مرة أخرى.');
-                }
-
-                btn.innerText = 'نشر المنتج';
-                btn.disabled = false;
-            };
+            btn.innerText = 'نشر المنتج';
+            btn.disabled = false;
         } catch (error) {
             console.error(error);
             alert('❌ حدث خطأ ما.');
@@ -189,6 +180,45 @@
             btn.innerText = 'نشر المنتج';
             btn.disabled = false;
         }
+    }
+
+    // === أداة ضغط الصورة (الميزة الجديدة) ===
+    function compressImage(file, maxWidth, maxHeight, quality) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // حساب الأبعاد الجديدة لتتناسب مع المربع
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // تحويل الصورة المضغوطة إلى Base64 وإرجاعها
+                    resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+                };
+                img.onerror = reject;
+            };
+            reader.onerror = reject;
+        });
     }
 
     function renderProducts() {
