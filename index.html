@@ -137,15 +137,15 @@
 </div>
 
 <script>
-    // ===== الإعدادات =====
-    const BIN_ID = '67e6e2be8561e97a50e2f380'; // معرف المخزن
-    const API_KEY = '$2a$10$p.b5.Kc2lUJg8kSCP5vUEOVFbO3OIC2GXdthVVgNtZx3VvV3bcYym'; // مفتاح الوصول
+    // ===== إعدادات قاعدة البيانات السحابية (تم إنشاؤها لك) =====
+    const BIN_ID = '67eeae098561e97a50e3351b'; // معرف الصندوق الخاص بك
+    const API_KEY = '$2a$10$wC.a9xG.WpNk93ajKpUJpe1nNuNzDlqV.lUM1g7QwQ6n34qOtq7JC'; // مفتاحك الخاص
     const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let products = [];
     let cart = JSON.parse(localStorage.getItem('zekoo_cart')) || [];
 
-    // ===== دوال الاتصال بقاعدة البيانات =====
+    // ===== تحميل المنتجات من السحابة (عند فتح الصفحة) =====
     async function loadProducts() {
         try {
             const response = await fetch(API_URL, {
@@ -160,6 +160,7 @@
         }
     }
 
+    // ===== حفظ المنتجات في السحابة =====
     async function saveProductsToDB() {
         try {
             await fetch(API_URL, {
@@ -175,7 +176,7 @@
         }
     }
 
-    // ===== تحميل الصفحة =====
+    // ===== تشغيل عند فتح الصفحة =====
     loadProducts();
     updateCartUI();
 
@@ -191,7 +192,7 @@
         } else { alert('❌ رمز سري خاطئ!'); }
     }
 
-    // ===== إضافة منتج جديد (يذهب للعالم كله) =====
+    // ===== إضافة منتج جديد (يُحفظ في السحابة) =====
     async function addProduct() {
         const title = document.getElementById('p-title').value;
         const price = document.getElementById('p-price').value;
@@ -210,7 +211,7 @@
         };
         
         products.push(newProduct);
-        await saveProductsToDB(); // يحفظ في المخزن للأبد
+        await saveProductsToDB(); // حفظ في السحابة (يبقى للأبد)
         renderProducts();
 
         document.getElementById('admin-panel').style.display = 'none';
@@ -218,7 +219,7 @@
         document.getElementById('p-price').value = ''; 
         document.getElementById('p-image-url').value = '';
         document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
-        alert('✅ تم نشر المنتج بنجاح وسيبقى للأبد!');
+        alert('✅ تم نشر المنتج بنجاح! الآن يراه الجميع وسيبقى للأبد!');
     }
 
     // ===== عرض المنتجات =====
@@ -240,11 +241,11 @@
         });
     }
 
-    // ===== حذف منتج من المتجر (للجميع) =====
+    // ===== حذف منتج من المتجر (يُحذف من السحابة) =====
     async function deleteProduct(id) {
         if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
             products = products.filter(product => product.id !== id);
-            await saveProductsToDB(); // يحذف من المخزن للجميع
+            await saveProductsToDB();
             renderProducts();
             alert('🗑️ تم حذف المنتج بنجاح!');
         }
