@@ -137,11 +137,8 @@
 </div>
 
 <script>
-    // ===== المنتجات الثابتة (فارغة الآن) =====
-    const defaultProducts = [];
-
-    // ===== تحميل المنتجات من الذاكرة =====
-    let products = [...defaultProducts];
+    // ===== تحميل المنتجات من الذاكرة المحلية (LocalStorage) =====
+    let products = JSON.parse(localStorage.getItem('zekoo_products')) || [];
     let cart = JSON.parse(localStorage.getItem('zekoo_cart')) || [];
 
     // عرض المنتجات عند تحميل الصفحة
@@ -158,6 +155,11 @@
             document.getElementById('admin-panel').style.display = 'block';
             document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'flex');
         } else { alert('❌ رمز سري خاطئ!'); }
+    }
+
+    // ===== دوال حفظ المنتجات =====
+    function saveProducts() {
+        localStorage.setItem('zekoo_products', JSON.stringify(products));
     }
 
     // ===== إضافة منتج جديد =====
@@ -179,6 +181,7 @@
         };
         
         products.push(newProduct);
+        saveProducts(); // حفظ المنتج في الذاكرة
         renderProducts();
 
         document.getElementById('admin-panel').style.display = 'none';
@@ -186,7 +189,7 @@
         document.getElementById('p-price').value = ''; 
         document.getElementById('p-image-url').value = '';
         document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
-        alert('✅ تم نشر المنتج بنجاح!');
+        alert('✅ تم نشر المنتج بنجاح وسيبقى للأبد!');
     }
 
     // ===== عرض المنتجات =====
@@ -212,6 +215,7 @@
     function deleteProduct(id) {
         if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
             products = products.filter(product => product.id !== id);
+            saveProducts(); // تحديث الذاكرة بعد الحذف
             renderProducts();
             alert('🗑️ تم حذف المنتج بنجاح!');
         }
