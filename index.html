@@ -6,7 +6,6 @@
     <title>ZEKOO IRAQ</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ===== الأساسيات ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { background-color: #111; color: #fff; padding-bottom: 80px; }
         a { text-decoration: none; color: inherit; }
@@ -20,12 +19,9 @@
         .social-insta { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); color: white; }
         .social-link:hover { transform: scale(1.1); }
         .cart-btn { background: #ffd700; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; color: #000; }
-        
         .hero { text-align: center; padding: 60px 20px; }
         .hero h1 { font-size: 2.5rem; margin-bottom: 20px; }
         .btn { background: #ffd700; padding: 10px 30px; border-radius: 5px; color: #000; font-weight: bold; }
-
-        /* ===== السلة ===== */
         #cart-box { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; padding: 30px 20px; overflow-y: auto; }
         #cart-box h3 { color: #ffd700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         #cart-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -39,32 +35,22 @@
             border-radius: 8px;
             border: 1px solid #333;
         }
-        .cart-item-info {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        .cart-item-info { display: flex; flex-direction: column; gap: 5px; }
         .cart-item-title { font-weight: bold; font-size: 1rem; }
         .cart-item-price { color: #ffd700; font-size: 0.9rem; }
-        
-        /* زر الحذف الجديد داخل السلة */
-        .cart-delete-btn {
-            background: transparent;
-            border: none;
-            color: #ff3333;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: 0.2s;
-        }
+        .cart-delete-btn { background: transparent; border: none; color: #ff3333; font-size: 1.2rem; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: 0.2s; }
         .cart-delete-btn:hover { background: #ff3333; color: white; }
         
         #cart-total { font-size: 1.2rem; color: #ffd700; margin-top: 10px; text-align: left; }
+        
+        /* زر مسح الكل الجديد */
+        .clear-cart-container { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .clear-cart-btn { background: #ff3333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+        .clear-cart-btn:hover { background: #cc0000; }
+
         #send-order-btn { width: 100%; background: #25D366; color: white; padding: 15px; border: none; border-radius: 5px; font-size: 1.1rem; cursor: pointer; font-weight: bold; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         #send-order-btn:hover { background: #20b858; }
 
-        /* ===== عرض المنتجات ===== */
         .title { text-align: center; color: #ffd700; margin: 40px 0 20px; }
         .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 0 5%; margin-bottom: 50px; }
         .product-card { background: #222; border-radius: 10px; padding: 15px; text-align: center; transition: 0.3s; border: 1px solid transparent; position: relative; }
@@ -74,12 +60,8 @@
         .product-price { color: #ffd700; margin-bottom: 10px; }
         .add-to-cart { background: #333; color: #fff; border: 1px solid #555; padding: 5px 15px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
         .add-to-cart:hover { background: #ffd700; color: #000; }
-
-        /* ===== زر الحذف في المتجر (لصاحب المتجر) ===== */
         .delete-btn { position: absolute; top: 10px; right: 10px; background: #ff3333; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; justify-content: center; align-items: center; transition: 0.2s; display: none; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .delete-btn:hover { background: #cc0000; transform: scale(1.1); }
-
-        /* ===== الأنظمة السرية ===== */
         #secret-trigger { position: fixed; bottom: 20px; right: 20px; background: #222; color: #555; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; z-index: 1000; border: 1px solid #333; user-select: none; }
         #secret-trigger:hover { background: #333; color: #ffd700; }
         #secret-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1001; justify-content: center; align-items: center; }
@@ -93,7 +75,6 @@
         #admin-panel input[type="text"] { padding: 10px; }
         .add-btn { width: 100%; background: #ffd700; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; }
         .add-btn:hover { background: #e6c200; }
-        
         @media (max-width: 600px) { .header { flex-direction: column; gap: 10px; text-align: center; } .grid-container { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
@@ -124,6 +105,9 @@
     <h3>🛒 سلة المشتريات <span style="font-weight:normal; font-size:0.9rem; cursor:pointer;" onclick="toggleCart()">❌ إغلاق</span></h3>
     <div id="cart-items"></div>
     <hr>
+    <div class="clear-cart-container">
+        <button class="clear-cart-btn" onclick="clearCart()">🗑️ مسح الكل</button>
+    </div>
     <p id="cart-total">المجموع: 0 د.ع</p>
     <button id="send-order-btn" onclick="sendOrder()">💬 إرسال الطلب عبر الواتساب</button>
 </div>
@@ -154,11 +138,22 @@
 </div>
 
 <script>
-    // ===== المتغيرات =====
-    let products = []; // قائمة المنتجات المعروضة في المتجر
-    let cart = [];     // قائمة المنتجات في السلة
+    // ===== المنتجات الثابتة التي تبقى للأبد =====
+    // يمكنك إضافة منتجات جديدة هنا بكل سهولة!
+    const defaultProducts = [
+        { id: 1, title: 'شورت رجالي أسود', price: 15000, image: 'https://iili.io/CEHOAjs.jpg' },
+        { id: 2, title: 'بلوفر بيج شتوي', price: 25000, image: 'https://i.ibb.co/6P0dD4k/CEHOAjs.jpg' }
+    ];
 
-    // ===== دوال الرمز السري (لوحة التحكم) =====
+    // ===== تحميل المنتجات من الذاكرة =====
+    let products = [...defaultProducts];
+    let cart = JSON.parse(localStorage.getItem('zekoo_cart')) || [];
+
+    // عرض المنتجات عند تحميل الصفحة
+    renderProducts();
+    updateCartUI();
+
+    // ===== دوال الرمز السري =====
     function openSecretModal() { document.getElementById('secret-modal').style.display = 'flex'; document.getElementById('secret-pass').value = ''; }
     function closeSecretModal() { document.getElementById('secret-modal').style.display = 'none'; }
     function checkSecret() {
@@ -170,7 +165,7 @@
         } else { alert('❌ رمز سري خاطئ!'); }
     }
 
-    // ===== إضافة منتج جديد للمتجر =====
+    // ===== إضافة منتج جديد =====
     async function addProduct() {
         const title = document.getElementById('p-title').value;
         const price = document.getElementById('p-price').value;
@@ -191,7 +186,6 @@
         products.push(newProduct);
         renderProducts();
 
-        // تفريغ الحقول وإخفاء اللوحة
         document.getElementById('admin-panel').style.display = 'none';
         document.getElementById('p-title').value = ''; 
         document.getElementById('p-price').value = ''; 
@@ -200,7 +194,7 @@
         alert('✅ تم نشر المنتج بنجاح!');
     }
 
-    // ===== عرض المنتجات في المتجر =====
+    // ===== عرض المنتجات =====
     function renderProducts() {
         const container = document.getElementById('products-container');
         container.innerHTML = '';
@@ -228,36 +222,47 @@
         }
     }
 
-    // ===== دوال السلة (مع زر الحذف الجديد) =====
-    function toggleCart() { const cartBox = document.getElementById('cart-box'); cartBox.style.display = cartBox.style.display === 'block' ? 'none' : 'block'; renderCart(); }
+    // ===== دوال السلة المتطورة =====
+    function toggleCart() { 
+        const cartBox = document.getElementById('cart-box'); 
+        cartBox.style.display = cartBox.style.display === 'block' ? 'none' : 'block'; 
+        updateCartUI(); 
+    }
 
-    // هذه الدالة تبحث عن المنتج وتضيفه للسلة
+    function saveCart() {
+        localStorage.setItem('zekoo_cart', JSON.stringify(cart));
+    }
+
     function addToCart(id) { 
         const item = products.find(p => p.id === id); 
         if(item) { 
             cart.push(item); 
-            document.getElementById('cart-count').innerText = cart.length; 
-            renderCart(); // تحديث واجهة السلة فوراً
+            saveCart();
+            updateCartUI();
             alert(`✅ تم إضافة ${item.title} إلى السلة`); 
         } 
     }
 
-    // هذه الدالة الجديدة تقوم بحذف منتج واحد فقط من السلة بناءً على الـ ID
     function removeFromCart(id) {
-        // نستخدم filter لإرجاع كل المنتجات ما عدا المنتج الذي ضغطنا عليه
         cart = cart.filter(item => item.id !== id);
-        
-        // تحديث العداد في الزر الرئيسي
-        document.getElementById('cart-count').innerText = cart.length;
-        
-        // إعادة رسم السلة لتحديث المجموع
-        renderCart();
+        saveCart();
+        updateCartUI();
     }
 
-    // هذه الدالة ترسم محتويات السلة
-    function renderCart() {
+    function clearCart() {
+        if(cart.length === 0) return alert('السلة فارغة بالفعل!');
+        if(confirm('هل أنت متأكد من حذف جميع المنتجات من السلة؟')) {
+            cart = [];
+            saveCart();
+            updateCartUI();
+            alert('🗑️ تم مسح السلة بالكامل!');
+        }
+    }
+
+    function updateCartUI() {
         const container = document.getElementById('cart-items');
         container.innerHTML = '';
+        document.getElementById('cart-count').innerText = cart.length;
         let total = 0;
         
         if (cart.length === 0) {
@@ -268,7 +273,6 @@
 
         cart.forEach((item) => { 
             total += parseInt(item.price); 
-            // لاحظ هنا أننا أضفنا زر للحذف (🗑️) وربطناه بـ removeFromCart
             container.innerHTML += `
                 <div class="cart-item">
                     <div class="cart-item-info">
