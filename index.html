@@ -50,7 +50,7 @@
         #admin-panel { display: none; position: fixed; bottom: 80px; right: 20px; background: #1a1a1a; padding: 20px; border: 1px solid #ffd700; border-radius: 10px; width: 320px; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.9); }
         #admin-panel h3 { color: #ffd700; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
         #admin-panel input { width: 100%; padding: 10px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 5px; }
-        #admin-panel input[type="file"] { padding: 5px; }
+        #admin-panel input[type="text"] { padding: 10px; }
         .add-btn { width: 100%; background: #ffd700; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; }
         .add-btn:hover { background: #e6c200; }
         @media (max-width: 600px) { .header { flex-direction: column; gap: 10px; text-align: center; } .grid-container { grid-template-columns: repeat(2, 1fr); } }
@@ -108,7 +108,8 @@
     <h3>➕ نشر منتج جديد</h3>
     <input id="p-title" type="text" placeholder="اسم المنتج">
     <input id="p-price" type="number" placeholder="السعر (د.ع)">
-    <input id="p-img-file" type="file" accept="image/*">
+    <!-- خانة جديدة لرابط الصورة -->
+    <input id="p-image-url" type="text" placeholder="رابط الصورة (انسخ الرابط وضعه هنا)">
     <button class="add-btn" onclick="addProduct()">نشر المنتج</button>
 </div>
 
@@ -126,93 +127,34 @@
         } else { alert('❌ رمز سري خاطئ!'); }
     }
 
-    // دالة إضافة المنتج باستخدام Catbox.moe
+    // دالة إضافة المنتج الجديدة (تعتمد على رابط الصورة)
     async function addProduct() {
         const title = document.getElementById('p-title').value;
         const price = document.getElementById('p-price').value;
-        const fileInput = document.getElementById('p-img-file');
+        const imageUrl = document.getElementById('p-image-url').value.trim(); // قراءة الرابط
 
-        if (!title || !price || !fileInput.files[0]) { alert('الرجاء ملء جميع الحقول واختيار صورة!'); return; }
-
-        const btn = document.querySelector('.add-btn');
-        btn.innerText = 'جاري الضغط والرفع...';
-        btn.disabled = true;
-
-        try {
-            const file = fileInput.files[0];
-            const compressedBlob = await compressImage(file, 600, 600, 0.7);
-            
-            const formData = new FormData();
-            formData.append('reqtype', 'fileupload');
-            formData.append('fileToUpload', compressedBlob);
-
-            const response = await fetch('https://catbox.moe/user/api.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const imageUrl = await response.text();
-
-            if (imageUrl && imageUrl.startsWith('https://')) {
-                const newProduct = { id: Date.now(), title: title, price: price, image: imageUrl };
-                products.push(newProduct);
-                renderProducts();
-
-                document.getElementById('admin-panel').style.display = 'none';
-                document.getElementById('p-title').value = ''; 
-                document.getElementById('p-price').value = ''; 
-                document.getElementById('p-img-file').value = '';
-                document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
-                alert('✅ تم نشر المنتج بنجاح!');
-            } else {
-                alert('❌ فشل رفع الصورة. حاول مرة أخرى.');
-            }
-
-            btn.innerText = 'نشر المنتج';
-            btn.disabled = false;
-        } catch (error) {
-            console.error(error);
-            alert('❌ حدث خطأ ما.');
-            const btn = document.querySelector('.add-btn');
-            btn.innerText = 'نشر المنتج';
-            btn.disabled = false;
+        if (!title || !price || !imageUrl) { 
+            alert('الرجاء ملء جميع الحقول: الاسم، السعر، ورابط الصورة!'); 
+            return; 
         }
-    }
 
-    function compressImage(file, maxWidth, maxHeight, quality) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    if (width > height) {
-                        if (width > maxWidth) {
-                            height *= maxWidth / width;
-                            width = maxWidth;
-                        }
-                    } else {
-                        if (height > maxHeight) {
-                            width *= maxHeight / height;
-                            height = maxHeight;
-                        }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    canvas.toBlob((blob) => {
-                        resolve(blob);
-                    }, 'image/jpeg', quality);
-                };
-                img.onerror = reject;
-            };
-            reader.onerror = reject;
-        });
+        const newProduct = {
+            id: Date.now(),
+            title: title,
+            price: price,
+            image: imageUrl
+        };
+        
+        products.push(newProduct);
+        renderProducts();
+
+        // تفريغ الحقول وإخفاء اللوحة
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('p-title').value = ''; 
+        document.getElementById('p-price').value = ''; 
+        document.getElementById('p-image-url').value = '';
+        document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = 'none');
+        alert('✅ تم نشر المنتج بنجاح!');
     }
 
     function renderProducts() {
